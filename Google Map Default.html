@@ -15,12 +15,12 @@
 			var map = []; // Contains all maps that will be created
 			
 			$doc.ready(function() {
-				googleMap($(maps_container));
+				googleMap(maps_container);
 			});
 		
 			// Generate Map From Address or Coordinates
 			function googleMap(container){
-				container.each(function(){
+				$(container).each(function(){
 					var $map_container = $(this);
 					var _lat = $map_container.data('lat');
 					var _lng = $map_container.data('lng');
@@ -87,13 +87,18 @@
 
 			// Regenerate the map, to be used inside accordions, or other elements, where there is an issue with reinitialization
 			function reDrawMaps(container){
-				container.each(function(){
+				$(container).each(function(){
 					var _id = $(this).attr('id');
 					var center = map[_id].getCenter();
 					google.maps.event.trigger(map[_id],'resize')
 					map[_id].setCenter(center);
 				});
 			};
+
+			// Regenerate the map on window resize
+			// google.maps.event.addDomListener(window, 'resize', function() {
+			// 	reDrawMaps(maps_container);
+			// });
 		})(jQuery, window, document);
 	</script>
 </head>
