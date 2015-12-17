@@ -99,7 +99,7 @@
 				};
 			};
 
-			// Draw the map
+			// Draw markers on the map
 			function drawMarkers(_id, _pins) {
 				// Custom Pin
 				/*
@@ -113,19 +113,37 @@
 				*/
 
 				var bounds = new google.maps.LatLngBounds();
+				var infoWindowses = [];
+				var markers = [];
 
 				for (var i = 0; i < _pins.length; i++) {
 					var pin = _pins[i];
-
 					var loc = new google.maps.LatLng(pin.lat, pin.lng);
-					var marker = new google.maps.Marker({ 
+
+					infoWindowses[i] = new google.maps.InfoWindow({
+						content: pin.title
+					});
+
+					markers[i] = new google.maps.Marker({ 
 						map: map[_id], 
 						title: pin.title,
 						position: loc,
 						// icon: image
 					});
 
-					bounds.extend(marker.position);
+					// Allow each marker to have an info window    
+					google.maps.event.addListener(markers[i], 'click', (function(marker, i) {
+						return function() {
+							$.each(infoWindowses, function(i, val) {
+								this.close(map[_id], markers[i]);
+							});
+
+							infoWindowses[i].setContent('<h4>' + _pins[i].title + '</h4>');
+							infoWindowses[i].open(map[_id], marker);
+						}
+					})(markers[i], i));
+
+					bounds.extend(markers[i].position);
 				};
 
 				map[_id].fitBounds(bounds);
