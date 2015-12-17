@@ -120,15 +120,20 @@
 					var pin = _pins[i];
 					var loc = new google.maps.LatLng(pin.lat, pin.lng);
 
-					infoWindowses[i] = new google.maps.InfoWindow({
-						content: pin.title
-					});
-
+					// Initialize Pin
 					markers[i] = new google.maps.Marker({ 
 						map: map[_id], 
 						title: pin.title,
 						position: loc,
 						// icon: image
+					});
+
+					// Add the current pin to the collection for centering the map
+					bounds.extend(markers[i].position);
+
+					// Initialize infoWindow
+					infoWindowses[i] = new google.maps.InfoWindow({
+						content: pin.title
 					});
 
 					// Allow each marker to have an info window    
@@ -142,8 +147,6 @@
 							infoWindowses[i].open(map[_id], marker);
 						}
 					})(markers[i], i));
-
-					bounds.extend(markers[i].position);
 				};
 
 				map[_id].fitBounds(bounds);
