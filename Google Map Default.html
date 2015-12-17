@@ -13,11 +13,11 @@
 			var $doc = $(document);
 			var maps_container = '.google-map';
 			var map = []; // Contains all maps that will be created
-			
+
 			$doc.ready(function() {
 				googleMap(maps_container);
 			});
-		
+
 			// Generate Map From Address or Coordinates
 			function googleMap(container){
 				$(container).each(function(){
@@ -28,6 +28,7 @@
 					var _address = $map_container.data('location');
 					var _zoom = $map_container.data('zoom');
 					var _id = $map_container.attr('id');
+					var _pins = $.parseJSON(urlDecode($map_container.data('pins')));
 
 					// Set default Zoom
 					if ( typeof _zoom == 'undefined' ) {
@@ -49,6 +50,9 @@
 					} else if ( typeof _lat != 'undefined' && typeof _lng != 'undefined' ) {
 						var loc = new google.maps.LatLng(_lat, _lng);
 						drawMap( _id, loc, _zoom );
+					} else if ( typeof _pins != 'undefined' ) {
+						drawMap( _id, '', _zoom );
+						drawMarkers( _id, _pins );
 					};
 				});
 			};
@@ -66,7 +70,7 @@
 				);
 				*/
 
-				map[_id] = new google.maps.Map(document.getElementById(_id), {
+				var args = {
 					zoom: _zoom,
 					mapTypeId: google.maps.MapTypeId.ROADMAP,
 					center: loc,
@@ -76,13 +80,55 @@
 					scaleControl: false,
 					streetViewControl: false,
 					overviewMapControl: false
-				});
+				};
 
-				var marker = new google.maps.Marker({ 
-					map: map[_id], 
-					position: loc,
-					// icon: image
-				});
+				if ( loc !== '' ) {
+					$.extend(true, args, {
+						center: loc,
+					});
+				}
+
+				map[_id] = new google.maps.Map(document.getElementById(_id), args);
+
+				if ( loc !== '' ) {
+					var marker = new google.maps.Marker({ 
+						map: map[_id], 
+						position: loc,
+						// icon: image
+					});
+				};
+			};
+
+			// Draw the map
+			function drawMarkers(_id, _pins) {
+				// Custom Pin
+				/*
+				// This value is passed from the wordpress, for correct image load.
+				var dir = php_passed_variables['stylesheet_directory'];
+				var image = new google.maps.MarkerImage( dir + '/images/pin.png',
+					new google.maps.Size(48, 64),
+					new google.maps.Point(0, 0),
+					new google.maps.Point(20, 64)
+				);
+				*/
+
+				var bounds = new google.maps.LatLngBounds();
+
+				for (var i = 0; i < _pins.length; i++) {
+					var pin = _pins[i];
+
+					var loc = new google.maps.LatLng(pin.lat, pin.lng);
+					var marker = new google.maps.Marker({ 
+						map: map[_id], 
+						title: pin.title,
+						position: loc,
+						// icon: image
+					});
+
+					bounds.extend(marker.position);
+				};
+
+				map[_id].fitBounds(bounds);
 			};
 
 			// Regenerate the map, to be used inside accordions, or other elements, where there is an issue with reinitialization
@@ -99,6 +145,15 @@
 			// google.maps.event.addDomListener(window, 'resize', function() {
 			// 	reDrawMaps(maps_container);
 			// });
+
+			urlDecode = function(str) {
+				return decodeURIComponent((str + '')
+					.replace(/%(?![\da-f]{2})/gi, function() {
+						// PHP tolerates poorly formed escape sequences
+						return '%25';
+					})
+					.replace(/\+/g, '%20'));
+			}
 		})(jQuery, window, document);
 	</script>
 </head>
@@ -106,5 +161,16 @@
 	<div id="map-1" class="google-map google-map-1" data-location="Varna ul Naptun 8" data-zoom="10"></div><!-- /#map.google-map-1 -->
 	<div id="map-2" class="google-map google-map-2" data-coordinates="43.225773,27.8511866" data-zoom="13"></div><!-- /#map.google-map-2 -->
 	<div id="map-3" class="google-map google-map-3" data-lat="43.225773" data-lng="27.8511866" data-zoom="16"></div><!-- /#map.google-map-3 -->
+
+	<?php
+	$pins = array(
+		array( 'lat' => '34.2325893', 'lng' => '-86.24783179999997', 'title' => 'Albertville' ),
+		array( 'lat' => '32.9440120', 'lng' => '-85.95385320000003', 'title' => 'Alexander City' ),
+		array( 'lat' => '31.1051779', 'lng' => '-87.07219179999998', 'title' => 'Brewton' ),
+		array( 'lat' => '33.1028965', 'lng' => '-86.75359750000001', 'title' => 'Calera' )
+	);
+	?>
+
+	<div id="map-4" class="google-map google-map-4" data-pins="<?php echo urlencode(json_encode($coordinates)); ?>"></div><!-- /#map.google-map-4 -->
 </body>
 </html>
