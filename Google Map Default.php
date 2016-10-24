@@ -13,6 +13,7 @@
 			var $doc = $(document);
 			var maps_container = '.google-map';
 			var map = []; // Contains all maps that will be created
+			var map_bounds = []; // Contains all bounds per map
 
 			$doc.ready(function() {
 				googleMap(maps_container);
@@ -50,8 +51,9 @@
 					} else if ( typeof _lat != 'undefined' && typeof _lng != 'undefined' ) {
 						var loc = new google.maps.LatLng(_lat, _lng);
 						drawMap( _id, loc, _zoom );
-					} else if ( typeof _pins != 'undefined' ) {
-						drawMap( _id, '', _zoom );
+					} else if ( typeof _pins != 'undefined' && _pins.length >= 1 ) {
+						var loc = new google.maps.LatLng(_pins[0]['lat'], _pins[0]['lng']);
+						drawMap( _id, loc, _zoom );
 						drawMarkers( _id, _pins );
 					};
 				});
@@ -63,11 +65,15 @@
 				/*
 				// This value is passed from the wordpress, for correct image load.
 				var dir = php_passed_variables['stylesheet_directory'];
-				var image = new google.maps.MarkerImage( dir + '/images/pin.png',
-					new google.maps.Size(48, 64),
-					new google.maps.Point(0, 0),
-					new google.maps.Point(20, 64)
-				);
+
+				// Retina Image Support
+				var image = {
+					url: dir + '/images/google-pin.png',
+					size: new google.maps.Size(50, 100),
+					origin: new google.maps.Point(0, 0),
+					anchor: new google.maps.Point(25, 50),
+					scaledSize: new google.maps.Size(25, 50)
+				};
 				*/
 
 				var args = {
@@ -91,8 +97,8 @@
 				map[_id] = new google.maps.Map(document.getElementById(_id), args);
 
 				if ( loc !== '' ) {
-					var marker = new google.maps.Marker({ 
-						map: map[_id], 
+					var marker = new google.maps.Marker({
+						map: map[_id],
 						position: loc,
 						// icon: image
 					});
@@ -105,11 +111,15 @@
 				/*
 				// This value is passed from the wordpress, for correct image load.
 				var dir = php_passed_variables['stylesheet_directory'];
-				var image = new google.maps.MarkerImage( dir + '/images/pin.png',
-					new google.maps.Size(48, 64),
-					new google.maps.Point(0, 0),
-					new google.maps.Point(20, 64)
-				);
+
+				// Retina Image Support
+				var image = {
+					url: dir + '/images/google-pin.png',
+					size: new google.maps.Size(50, 100),
+					origin: new google.maps.Point(0, 0),
+					anchor: new google.maps.Point(25, 50),
+					scaledSize: new google.maps.Size(25, 50)
+				};
 				*/
 
 				var bounds = new google.maps.LatLngBounds();
@@ -121,8 +131,8 @@
 					var loc = new google.maps.LatLng(pin.lat, pin.lng);
 
 					// Initialize Pin
-					markers[i] = new google.maps.Marker({ 
-						map: map[_id], 
+					markers[i] = new google.maps.Marker({
+						map: map[_id],
 						title: pin.title,
 						position: loc,
 						// icon: image
@@ -136,7 +146,7 @@
 						content: pin.title
 					});
 
-					// Allow each marker to have an info window    
+					// Allow each marker to have an info window
 					google.maps.event.addListener(markers[i], 'click', (function(marker, i) {
 						return function() {
 							$.each(infoWindowses, function(i, val) {
@@ -149,6 +159,7 @@
 					})(markers[i], i));
 				};
 
+				map_bounds[_id] = bounds;
 				map[_id].fitBounds(bounds);
 			};
 
@@ -159,6 +170,10 @@
 					var center = map[_id].getCenter();
 					google.maps.event.trigger(map[_id],'resize')
 					map[_id].setCenter(center);
+
+					if ( typeof map_bounds[_id] != 'undefined' ) {
+						map[_id].fitBounds(map_bounds[_id]);
+					};
 				});
 			};
 
@@ -192,6 +207,6 @@
 	);
 	?>
 
-	<div id="map-4" class="google-map google-map-4" data-pins="<?php echo urlencode(json_encode($coordinates)); ?>"></div><!-- /#map.google-map-4 -->
+	<div id="map-4" class="google-map google-map-4" data-pins="<?php echo urlencode(json_encode($pins)); ?>"></div><!-- /#map.google-map-4 -->
 </body>
 </html>
