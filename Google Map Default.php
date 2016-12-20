@@ -19,8 +19,12 @@
 				googleMap(maps_container);
 			});
 
-			// Generate Map From Address or Coordinates
-			function googleMap(container){
+			/**
+			 * Generate Map From Address or Coordinates
+			 * mapOptions - an array of map options, like Controls
+			 * markerOptions - an array of marker options, like icon
+			 */
+			function googleMap(container, mapOptions, markerOptions){
 				$(container).each(function(){
 					var $map_container = $(this);
 					var _lat = $map_container.data('lat');
@@ -29,7 +33,10 @@
 					var _address = $map_container.data('location');
 					var _zoom = $map_container.data('zoom');
 					var _id = $map_container.attr('id');
-					var _pins = $.parseJSON(urlDecode($map_container.data('pins')));
+
+					if ( typeof $map_container.data('pins') != 'undefined' ) {
+						var _pins = $.parseJSON(urlDecode($map_container.data('pins')));
+					};
 
 					// Set default Zoom
 					if ( typeof _zoom == 'undefined' ) {
@@ -41,26 +48,26 @@
 						geocoder.geocode({ address: _address }, function(result, status) {
 							if (status == 'OK') {
 								var loc = result[0].geometry.location;
-								drawMap( _id, loc, _zoom );
+								drawMap( _id, loc, _zoom, mapOptions, markerOptions );
 							}
 						});
 					} else if ( typeof _coordinates != 'undefined' ) {
 						var _coordinates_array = _coordinates.split(',');
 						var loc = new google.maps.LatLng(_coordinates_array[0], _coordinates_array[1]);
-						drawMap( _id, loc, _zoom );
+						drawMap( _id, loc, _zoom, mapOptions, markerOptions );
 					} else if ( typeof _lat != 'undefined' && typeof _lng != 'undefined' ) {
 						var loc = new google.maps.LatLng(_lat, _lng);
-						drawMap( _id, loc, _zoom );
+						drawMap( _id, loc, _zoom, mapOptions, markerOptions );
 					} else if ( typeof _pins != 'undefined' && _pins.length >= 1 ) {
 						var loc = new google.maps.LatLng(_pins[0]['lat'], _pins[0]['lng']);
-						drawMap( _id, loc, _zoom );
-						drawMarkers( _id, _pins );
+						drawMap( _id, loc, _zoom, mapOptions, markerOptions );
+						drawMarkers( _id, _pins, markerOptions );
 					};
 				});
 			};
 
 			// Draw the map
-			function drawMap(_id, loc, _zoom) {
+			function drawMap(_id, loc, _zoom, mapOptions, markerOptions) {
 				// Custom Pin
 				/*
 				// This value is passed from the wordpress, for correct image load.
@@ -76,7 +83,7 @@
 				};
 				*/
 
-				var args = {
+				var mapOptions = $.extend({
 					zoom: _zoom,
 					mapTypeId: google.maps.MapTypeId.ROADMAP,
 					center: loc,
@@ -86,27 +93,29 @@
 					scaleControl: false,
 					streetViewControl: false,
 					overviewMapControl: false
-				};
+				}, mapOptions);
 
 				if ( loc !== '' ) {
-					$.extend(true, args, {
+					$.extend(true, mapOptions, {
 						center: loc,
 					});
 				}
 
-				map[_id] = new google.maps.Map(document.getElementById(_id), args);
+				map[_id] = new google.maps.Map(document.getElementById(_id), mapOptions);
 
 				if ( loc !== '' ) {
-					var marker = new google.maps.Marker({
+					markerOptions = $.extend({
 						map: map[_id],
 						position: loc,
 						// icon: image
-					});
+					}, markerOptions);
+
+					var marker = new google.maps.Marker(markerOptions);
 				};
 			};
 
 			// Draw markers on the map
-			function drawMarkers(_id, _pins) {
+			function drawMarkers(_id, _pins, markerOptions) {
 				// Custom Pin
 				/*
 				// This value is passed from the wordpress, for correct image load.
@@ -131,12 +140,14 @@
 					var loc = new google.maps.LatLng(pin.lat, pin.lng);
 
 					// Initialize Pin
-					markers[i] = new google.maps.Marker({
+					markerOptions = $.extend({
 						map: map[_id],
 						title: pin.title,
 						position: loc,
 						// icon: image
-					});
+					}, markerOptions);
+
+					markers[i] = new google.maps.Marker(markerOptions);
 
 					// Add the current pin to the collection for centering the map
 					bounds.extend(markers[i].position);
