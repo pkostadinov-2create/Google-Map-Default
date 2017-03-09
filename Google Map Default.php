@@ -34,6 +34,19 @@
 					var _zoom = $map_container.data('zoom');
 					var _id = $map_container.attr('id');
 
+					if ( typeof $map_container.data('map-options') != 'undefined' ) {
+						var _mapOptions = $.parseJSON(urlDecode($map_container.data('map-options')));
+
+						mapOptions = $.extend(mapOptions, _mapOptions);
+						console.log(mapOptions);
+					};
+
+					if ( typeof $map_container.data('marker-options') != 'undefined' ) {
+						var _markerOptions = $.parseJSON(urlDecode($map_container.data('marker-options')));
+
+						markerOptions = $.extend(markerOptions, _markerOptions);
+					};
+
 					if ( typeof $map_container.data('pins') != 'undefined' ) {
 						var _pins = $.parseJSON(urlDecode($map_container.data('pins')));
 					};
@@ -111,6 +124,15 @@
 					}, markerOptions);
 
 					var marker = new google.maps.Marker(markerOptions);
+
+					// Clicking on marker will redirect if url attribute is setup
+					google.maps.event.addListener( marker, 'click', (function(marker) {
+						return function() {
+							if ( typeof marker.url != 'undefined' ) {
+								window.open( marker.url );
+							};
+						}
+					})(marker));
 				};
 			};
 
@@ -205,7 +227,7 @@
 	</script>
 </head>
 <body>
-	<div id="map-1" class="google-map google-map-1" data-location="Varna ul Naptun 8" data-zoom="10"></div><!-- /#map.google-map-1 -->
+	<div id="map-1" class="google-map google-map-1" data-location="ul. Neptun 8, Varna, Bulgaria" data-zoom="10"></div><!-- /#map.google-map-1 -->
 	<div id="map-2" class="google-map google-map-2" data-coordinates="43.225773,27.8511866" data-zoom="13"></div><!-- /#map.google-map-2 -->
 	<div id="map-3" class="google-map google-map-3" data-lat="43.225773" data-lng="27.8511866" data-zoom="16"></div><!-- /#map.google-map-3 -->
 
@@ -219,5 +241,21 @@
 	?>
 
 	<div id="map-4" class="google-map google-map-4" data-pins="<?php echo urlencode(json_encode($pins)); ?>"></div><!-- /#map.google-map-4 -->
+
+	<?php
+	$marker_options = array(
+		'url' => 'https://www.google.com/maps/place/' . urlencode( 'ul. Neptun 9, Varna, Bulgaria' ),
+	);
+	?>
+
+	<div id="map-5" class="google-map google-map-5" data-location="ul. Neptun 9, Varna, Bulgaria" data-marker-options="<?php echo urlencode(json_encode($marker_options)); ?>"></div><!-- /#map.google-map-4 -->
+
+	<?php
+	$map_options = array(
+		'zoom' => 5,
+	);
+	?>
+
+	<div id="map-6" class="google-map google-map-6" data-location="ul. Neptun 10, Varna, Bulgaria" data-map-options="<?php echo urlencode(json_encode($map_options)); ?>"></div><!-- /#map.google-map-6 -->
 </body>
 </html>
