@@ -162,14 +162,14 @@
 					var loc = new google.maps.LatLng(pin.lat, pin.lng);
 
 					// Initialize Pin
-					markerOptions = $.extend({
+					var currentMarkerOptions = $.extend({
 						map: map[_id],
 						title: pin.title,
 						position: loc,
 						// icon: image
 					}, markerOptions);
 
-					markers[i] = new google.maps.Marker(markerOptions);
+					markers[i] = new google.maps.Marker(currentMarkerOptions);
 
 					// Add the current pin to the collection for centering the map
 					bounds.extend(markers[i].position);
