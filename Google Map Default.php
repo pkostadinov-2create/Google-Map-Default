@@ -73,7 +73,7 @@
 						drawMap( _id, loc, _zoom, mapOptions, markerOptions );
 					} else if ( typeof _pins != 'undefined' && _pins.length >= 1 ) {
 						var loc = new google.maps.LatLng(_pins[0]['lat'], _pins[0]['lng']);
-						drawMap( _id, loc, _zoom, mapOptions, markerOptions );
+						drawMap( _id, loc, _zoom, mapOptions, $.extend({ map: null }, markerOptions) );
 						drawMarkers( _id, _pins, markerOptions );
 					};
 				});
